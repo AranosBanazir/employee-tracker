@@ -148,7 +148,7 @@ const deleteDepartment = async () => {
     type: "list",
     prefix: "",
     choices: departmentList,
-    message: "Which department would you like to delete?",
+    message: "Which department would you like to delete? (",
   });
 };
 
@@ -217,15 +217,87 @@ const viewEmployeesByDepartment = async () => {};
 const viewRoles = async () => {
   const result =
     await pool.query(`Select r.title AS "Title", d.name AS "Department" FROM roles AS r
-        JOIN departments AS d ON r.id = d.id;`);
+        JOIN departments AS d ON r.department = d.id;`);
   console.clear();
   console.log(rolesASCII);
   console.table(result.rows);
   manageRoles();
 };
 
-const addRole = async () => {};
-const deleteRole = async () => {};
+const addRole = async () => {
+  await getDepartments();
+  inquirer
+    .prompt([
+      {
+        name: "role_name",
+        type: "input",
+        message: "What is the name of the new role?",
+        prefix: "",
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "What is the salary of the position?",
+        validate: (i) => (isNaN(i) ? false : true),
+        prefix: "",
+      },
+      {
+        name: "department",
+        type: "list",
+        message: "What is the department does the role belong to?",
+        choices: departmentList,
+        prefix: "",
+      },
+    ])
+    .then(async (a) => {
+      await pool.query(
+        `
+        INSERT INTO roles (title, salary, department)
+            VALUES
+                ($1, $2, (SELECT d.id FROM departments AS d WHERE d.name = $3));
+       `,
+        [a.role_name, a.salary, a.department]
+      );
+
+      // const test = await pool.query(
+      //   `
+      //           SELECT d.id FROM departments AS d WHERE d.name = $1
+      //  `,
+      //   [a.department]
+      // );
+
+      // console.log(test);
+
+      manageRoles();
+    });
+};
+
+const deleteRole = async () => {
+  await getRoles();
+  inquirer
+    .prompt({
+      message: "Which role would you like to delete?",
+      prefix: "",
+      type: "list",
+      choices: rolesList,
+      name: "role",
+    })
+    .then(async (a) => {
+      await pool.query(
+        `
+          DELETE FROM roles
+            WHERE role.title = $1
+        `,
+        [a.role]
+      );
+      console.clear();
+      console.log(rolesASCII);
+      console.log(
+        `Deleted the `.brightRed + `'${a.role.white}'` + `role.`.brightRed
+      );
+      manageRoles();
+    });
+};
 
 const getDepartments = async () => {
   const result = await pool.query("SELECT d.name FROM departments AS d;");
@@ -291,4 +363,3 @@ const manageEmployees = async () => {
 };
 
 promptMenu();
-

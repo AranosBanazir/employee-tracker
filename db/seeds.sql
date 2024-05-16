@@ -3,7 +3,7 @@ VALUES
     ('Marketing'),
     ('Sales');
 
-    INSERT INTO roles (title, salary, department)
+INSERT INTO roles (title, salary, department)
 VALUES ('Janitor', '10', '2'),
        ('Head of Marketing', '100', '1');
 
