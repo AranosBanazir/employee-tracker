@@ -1,7 +1,8 @@
+require("dotenv").config();
 const inquirer = require("inquirer");
 const { Pool } = require("pg");
 const colors = require("colors");
-require("dotenv").config();
+
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -9,7 +10,7 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-require("dotenv").config();
+
 let departmentList;
 let rolesList;
 
@@ -96,10 +97,13 @@ function handleChoice(a) {
   } else if (a.action === "Update an employee role") {
     updateEmployeeRole();
   } else if (a.action === "Manage Departments") {
+    console.log(departmentASCII);
     manageDepartments();
   } else if (a.action === "Manage Roles") {
+    console.log(rolesASCII);
     manageRoles();
   } else if (a.action === "Manage Employees") {
+    console.log(employeeASCII);
     manageEmployees();
   } else if (a.action === "Delete a department") {
     deleteDepartment();
@@ -143,19 +147,42 @@ const addDepartment = () => {
 
 const deleteDepartment = async () => {
   await getDepartments();
-  inquirer.prompt({
-    name: "department",
-    type: "list",
-    prefix: "",
-    choices: departmentList,
-    message: "Which department would you like to delete? (",
-  });
+  inquirer
+    .prompt({
+      name: "department",
+      type: "list",
+      prefix: "",
+      choices: departmentList,
+      message: "Which department would you like to delete? (",
+    })
+    .then(async (a) => {
+      await pool.query(
+        `
+          DELETE FROM departments
+            WHERE departments.name = $1;
+        `,
+        [a.department]
+      );
+      console.clear();
+      console.log(departmentASCII);
+      console.log(
+        `Deleted the `.brightRed + `'${a.department}'` + ` role.`.brightRed
+      );
+      manageDepartments();
+    });
 };
 
 const viewEmployees = async () => {
   const result =
-    await pool.query(`Select e.id, e.first_name AS "First Name", e.last_name AS "Last Name", r.title AS "Title", 
-    r.salary AS "Salary", d.name AS "Department" FROM employees AS e
+    await pool.query(`
+    SELECT 
+    e.id, e.first_name AS "First Name", 
+    e.last_name AS "Last Name", r.title AS "Title", 
+    r.salary AS "Salary", 
+    d.name AS "Department", 
+    CONCAT(m.first_name, ' ', m.last_name) AS "Manager" 
+    FROM employees AS e
+    FULL JOIN managers AS m ON e.manager_id = m.id
     JOIN roles AS r ON e.role_id = r.id
     JOIN departments AS d ON r.id = d.id;`);
 
@@ -286,14 +313,14 @@ const deleteRole = async () => {
       await pool.query(
         `
           DELETE FROM roles
-            WHERE role.title = $1
+            WHERE roles.title = $1;
         `,
         [a.role]
       );
       console.clear();
       console.log(rolesASCII);
       console.log(
-        `Deleted the `.brightRed + `'${a.role.white}'` + `role.`.brightRed
+        `Deleted the `.brightRed + `'${a.role}'` + ` role.`.brightRed
       );
       manageRoles();
     });
