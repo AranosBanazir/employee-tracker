@@ -1,22 +1,43 @@
 const pool = require("../db/db.js");
 const inquirer = require("inquirer");
+const { rolesASCII } = require("../assets/ascii.js");
 let departmentList;
 let rolesList;
+let employeeList;
+let managerList;
 
 const getDepartments = async () => {
   const result = await pool.query("SELECT d.name FROM departments AS d;");
 
   departmentList = result.rows.map((dept) => dept.name);
 };
-
 const getRoles = async () => {
   const result = await pool.query("SELECT r.title FROM roles AS r;");
 
-  rolesList = result.rows.map((role) => role.title);
+  (rolesList = result.rows.map((role) => role.title)), "None";
+};
+const getEmployees = async () => {
+  const result = await pool.query(
+    "SELECT e.first_name, e.last_name, e.id FROM employees AS e;"
+  );
+
+  employeeList = result.rows.map(
+    (emp) => emp.first_name + " " + emp.last_name + " #" + emp.id
+  );
+};
+const getManagers = async () => {
+  const result = await pool.query(
+    "SELECT * FROM employees e WHERE e.manager = true;"
+  );
+
+  managerList = [
+    ...result.rows.map((emp) => emp.first_name + " " + emp.last_name),
+    "None",
+  ];
 };
 
 const manageRoles = async () => {
-  const answer = inquirer.prompt({
+  const answer = await inquirer.prompt({
     message: "\nWhat would you like to do?",
     name: "action",
     prefix: "",
@@ -96,9 +117,12 @@ const viewRoles = async () => {
   const result =
     await pool.query(`Select r.title AS "Title", d.name AS "Department" FROM roles AS r
           JOIN departments AS d ON r.department = d.id;`);
+
   console.clear();
+  console.log(rolesASCII);
   console.table(result.rows);
   return "Manage Roles";
+  
 };
 
 module.exports = {

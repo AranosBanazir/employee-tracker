@@ -46,6 +46,7 @@ const manageEmployees = async () => {
       "Add an employee",
       "View all employees",
       "View employees by manager",
+      "View employees by department",
       "Update an employees role",
       "Update an employees manager",
       "Delete an employee",
@@ -111,10 +112,14 @@ const addEmployee = async () => {
       answers.isManager,
     ]
   );
+  console.clear();
   console.log(
-    `${answers.first_name} ${answers.last_name} has been ` +
+    `${answers.first_name} ${answers.last_name}`.brightGreen +
+      ` has been ` +
       "created".brightGreen +
-      ` and given the ${answers.role} role.`
+      ` and given the ` +
+      `${answers.role}`.brightGreen +
+      `role.`
   );
   return "Manage Employees";
 };
@@ -128,7 +133,7 @@ const viewEmployees = async () => {
       d.name AS "Department", CONCAT(m.first_name, ' ', m.last_name) AS "Manager" FROM employees AS e
       LEFT JOIN employees AS m ON e.manager_id = m.id
       JOIN roles AS r ON e.role_id = r.id
-      JOIN departments AS d ON r.id = d.id
+      JOIN departments AS d ON r.department = d.id
       ORDER BY "Department" ASC;`);
   console.clear();
   console.log(employeeASCII);
@@ -190,7 +195,7 @@ const deleteEmployee = async () => {
     `,
     [answers.who]
   );
-  console.log(`${answers.who} has been ` + `deleted`.brightRed);
+  console.log(`${answers.who}`.brightRed + ` has been ` + `deleted`.brightRed);
   return "Manage Employees";
 };
 
@@ -215,7 +220,7 @@ const viewEmployeesByManager = async () => {
     d.name AS "Department"
     FROM employees AS e 
     JOIN roles AS r ON e.role_id = r.id
-    JOIN departments AS d ON r.id = d.id
+    JOIN departments AS d ON r.department = d.id
     WHERE e.manager_id = (SELECT id FROM employees WHERE CONCAT(first_name, ' ', last_name) = $1)
     ORDER BY "Name" ASC;`,
     [answers.manager]
@@ -261,7 +266,38 @@ const updateEmployeeManager = async () => {
   );
   return "Manage Employees";
 };
-const viewEmployeesByDepartment = async () => {};
+
+const viewEmployeesByDepartment = async () => {
+  await getDepartments();
+  const answers = await inquirer.prompt([
+    {
+      name: "department",
+      type: "list",
+      prefix: "",
+      message: "Which department would you like view?",
+      choices: departmentList,
+    },
+  ]);
+
+  const result = await pool.query(
+    `
+    SELECT 
+    e.id, 
+    CONCAT(e.first_name, ' ', e.last_name) AS "Name", 
+    r.title AS "Title", 
+    d.name AS "Department"
+    FROM employees AS e 
+    JOIN roles AS r ON e.role_id = r.id
+    JOIN departments AS d ON r.department = d.id
+    WHERE d.name = $1
+    ORDER BY "Name" ASC;`,
+    [answers.department]
+  );
+  console.clear();
+  console.log(employeeASCII);
+  console.table(result.rows);
+  return "Manage Employees";
+};
 
 module.exports = {
   viewEmployees,

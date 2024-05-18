@@ -19,13 +19,11 @@ async function promptMenu() {
   handleChoice(answer.action);
 }
 
+//Switchboard function to pass response to correct functions
 async function handleChoice(a) {
   if (a === "View all departments") {
-    console.clear();
-    // console.log(departmentASCII);
     handleChoice(await dept.viewDepartments());
   } else if (a === "View all roles") {
-    console.log(rolesASCII);
     handleChoice(await roles.viewRoles());
   } else if (a === "View all employees") {
     handleChoice(await emp.viewEmployees());
@@ -38,13 +36,10 @@ async function handleChoice(a) {
   } else if (a === "Update an employee role") {
     handleChoice(await emp.updateEmployeeRole());
   } else if (a === "Manage Departments") {
-    // console.log(departmentASCII);
     handleChoice(await dept.manageDepartments());
   } else if (a === "Manage Roles") {
-    // console.log(rolesASCII);
     handleChoice(await roles.manageRoles());
   } else if (a === "Manage Employees") {
-    // console.log(employeeASCII);
     handleChoice(await emp.manageEmployees());
   } else if (a === "Delete a department") {
     handleChoice(await dept.deleteDepartment());
@@ -52,18 +47,21 @@ async function handleChoice(a) {
     handleChoice(await roles.deleteRole());
   } else if (a === "Delete an employee") {
     handleChoice(await emp.deleteEmployee());
-  } else if (a === "Update an employees role"){
-    handleChoice(await emp.updateEmployeeRole())
-  } else if (a === "Update an employees manager"){
-    handleChoice(await emp.updateEmployeeManager())
-  } else if (a === "View employees by manager"){
-    handleChoice(await emp.viewEmployeesByManager())
-  
+  } else if (a === "Update an employees role") {
+    handleChoice(await emp.updateEmployeeRole());
+  } else if (a === "Update an employees manager") {
+    handleChoice(await emp.updateEmployeeManager());
+  } else if (a === "View employees by manager") {
+    handleChoice(await emp.viewEmployeesByManager());
+  } else if (a === "View employees by department") {
+    handleChoice(await emp.viewEmployeesByDepartment());
   } else if (a === "Return to main menu") {
     console.clear();
     promptMenu();
   }
 }
+
+
 
 
 
