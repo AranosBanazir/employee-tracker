@@ -1,10 +1,10 @@
 const pool = require("../db/db.js");
 const inquirer = require("inquirer");
+const { employeeASCII } = require("../assets/ascii.js");
 let departmentList;
 let rolesList;
 let employeeList;
 let managerList;
-
 
 const getDepartments = async () => {
   const result = await pool.query("SELECT d.name FROM departments AS d;");
@@ -51,7 +51,7 @@ const addEmployee = async () => {
   await getEmployees();
   await getRoles();
   await getManagers();
-  console.log(employeeList);
+
   const answers = await inquirer.prompt([
     {
       name: "first_name",
@@ -88,7 +88,7 @@ const addEmployee = async () => {
       type: "confirm",
     },
   ]);
-  console.log(answers);
+
   await pool.query(
     `
         INSERT INTO employees (first_name, last_name, role_id, manager_id, manager)
@@ -119,16 +119,38 @@ const viewEmployees = async () => {
       e.last_name AS "Last Name", r.title AS "Title", 
       r.salary AS "Salary", 
       d.name AS "Department", CONCAT(m.first_name, ' ', m.last_name) AS "Manager" FROM employees AS e
-      JOIN employees AS m ON e.manager_id = m.id
+      LEFT JOIN employees AS m ON e.manager_id = m.id
       JOIN roles AS r ON e.role_id = r.id
       JOIN departments AS d ON r.id = d.id;`);
-
+  console.clear();
+  console.log(employeeASCII);
   console.table(result.rows);
   return "Manage Employees";
 };
 
 const updateEmployeeRole = async () => {};
-const deleteEmployee = async () => {};
+
+const deleteEmployee = async () => {
+  await getEmployees();
+  const answers = await inquirer.prompt([
+    {
+      name: "who",
+      type: "list",
+      prefix: "",
+      choices: employeeList,
+      message: "Who would you like to delete?",
+    },
+  ]);
+  await pool.query(
+    `
+    DELETE FROM employees e WHERE CONCAT(e.first_name, ' ', e.last_name) = $1;
+    `,
+    [answers.who]
+  );
+  console.log(`${answers.who} has been ` + `deleted`.brightRed);
+  return "Manage Employees";
+};
+
 const viewEmployeesByManager = async () => {};
 const updateEmployeeManagers = async () => {};
 const viewEmployeesByDepartment = async () => {};
