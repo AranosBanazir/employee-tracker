@@ -1,19 +1,34 @@
 const pool = require("../db/db.js");
-
 const inquirer = require("inquirer");
 let departmentList;
 let rolesList;
+let employeeList;
+let managerList;
+
 
 const getDepartments = async () => {
   const result = await pool.query("SELECT d.name FROM departments AS d;");
 
   departmentList = result.rows.map((dept) => dept.name);
 };
-
 const getRoles = async () => {
   const result = await pool.query("SELECT r.title FROM roles AS r;");
 
   rolesList = result.rows.map((role) => role.title);
+};
+const getEmployees = async () => {
+  const result = await pool.query(
+    "SELECT e.first_name, e.last_name FROM employees AS e;"
+  );
+
+  employeeList = result.rows.map((emp) => emp.first_name + " " + emp.last_name);
+};
+const getManagers = async () => {
+  const result = await pool.query(
+    "SELECT * FROM employees e WHERE e.manager = true;"
+  );
+
+  managerList = result.rows.map((emp) => emp.first_name + " " + emp.last_name);
 };
 
 const manageEmployees = async () => {
@@ -33,7 +48,10 @@ const manageEmployees = async () => {
 };
 
 const addEmployee = async () => {
+  await getEmployees();
   await getRoles();
+  await getManagers();
+  console.log(employeeList);
   const answers = await inquirer.prompt([
     {
       name: "first_name",
@@ -51,18 +69,40 @@ const addEmployee = async () => {
     },
     {
       name: "role",
-      message: "What department do they work in?",
+      message: "What is their role?",
       prefix: "",
       type: "list",
       choices: rolesList,
     },
+    {
+      name: "manager",
+      message: "Who is their manager?",
+      prefix: "",
+      type: "list",
+      choices: managerList,
+    },
+    {
+      name: "isManager",
+      message: "Are they a manager?",
+      prefix: "",
+      type: "confirm",
+    },
   ]);
+  console.log(answers);
   await pool.query(
     `
-        INSERT INTO employees (first_name, last_name, role_id, manager_id)
+        INSERT INTO employees (first_name, last_name, role_id, manager_id, manager)
         VALUES 
-        ($1, $2, (SELECT roles.id from roles WHERE roles.title = $3), '1');`,
-    [answers.first_name, answers.last_name, answers.role]
+        ($1, $2, 
+        (SELECT roles.id from roles WHERE roles.title = $3),
+        (SELECT e.id from employees AS e WHERE CONCAT(e.first_name, ' ', e.last_name) = $4), $5);`,
+    [
+      answers.first_name,
+      answers.last_name,
+      answers.role,
+      answers.manager,
+      answers.isManager,
+    ]
   );
   console.log(
     `${answers.first_name} ${answers.last_name} has been ` +
@@ -78,10 +118,8 @@ const viewEmployees = async () => {
       e.id, e.first_name AS "First Name", 
       e.last_name AS "Last Name", r.title AS "Title", 
       r.salary AS "Salary", 
-      d.name AS "Department", 
-      CONCAT(m.first_name, ' ', m.last_name) AS "Manager" 
-      FROM employees AS e
-      FULL JOIN managers AS m ON e.manager_id = m.id
+      d.name AS "Department", CONCAT(m.first_name, ' ', m.last_name) AS "Manager" FROM employees AS e
+      JOIN employees AS m ON e.manager_id = m.id
       JOIN roles AS r ON e.role_id = r.id
       JOIN departments AS d ON r.id = d.id;`);
 
@@ -91,6 +129,9 @@ const viewEmployees = async () => {
 
 const updateEmployeeRole = async () => {};
 const deleteEmployee = async () => {};
+const viewEmployeesByManager = async () => {};
+const updateEmployeeManagers = async () => {};
+const viewEmployeesByDepartment = async () => {};
 
 module.exports = {
   viewEmployees,
@@ -98,4 +139,7 @@ module.exports = {
   addEmployee,
   updateEmployeeRole,
   deleteEmployee,
+  viewEmployeesByManager,
+  viewEmployeesByDepartment,
+  updateEmployeeManagers,
 };

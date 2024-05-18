@@ -18,14 +18,6 @@ CREATE TABLE roles (
     ON DELETE SET NULL
 );
 
-CREATE TABLE managers (
-    id SERIAL PRIMARY KEY,
-    first_name VARCHAR(30) NOT NULL,
-    last_name  VARCHAR(30) NOT NULL,
-    department INT,
-    FOREIGN KEY (department) REFERENCES departments(id)
-    ON DELETE SET NULL
-);
 
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
@@ -33,9 +25,10 @@ CREATE TABLE employees (
     last_name VARCHAR(30) NOT NULL,
     role_id   INT NOT NULL,
     manager_id INT,
+    manager BOOLEAN DEFAULT false,
     FOREIGN KEY (role_id) REFERENCES roles(id)
     ON DELETE SET NULL,
-    FOREIGN KEY (manager_id) REFERENCES managers(id)
+    FOREIGN KEY (manager_id) REFERENCES employees(id)
     ON DELETE SET NULL
 );
 

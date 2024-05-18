@@ -1,6 +1,5 @@
 require("dotenv").config();
 const inquirer = require("inquirer");
-const pool = require("./db/db.js");
 const colors = require("colors");
 const roles = require("./queries/roles.js");
 const dept = require("./queries/deptartments.js");
@@ -111,16 +110,7 @@ async function handleChoice(a) {
   }
 }
 
-const viewEmployeesByManager = async () => {};
-const updateManagers = async () => {};
-const viewEmployeesByDepartment = async () => {};
-
-
-
-
-
-
-
+module.exports = { departmentASCII, employeeASCII, rolesASCII };
 
 
 promptMenu();
