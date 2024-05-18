@@ -18,19 +18,8 @@ VALUES
        ('Lawyer', '100000', '1'),
        ('Legal Team Lead', '250000', '1');
 
-INSERT INTO managers (first_name, last_name, department)
-    VALUES ('Bob', 'Saget', '4'),
-           ('Elvis', 'Prestley', '1');
-
-
-
-INSERT INTO employees (first_name, last_name, role_id, manager_id)
+INSERT INTO employees (first_name, last_name, role_id, manager_id, manager)
     VALUES 
-        ('Caleb', 'Saiia', '4', '1'),
-        ('John', 'Doe', '2', '2'),
-        ('Tom', 'Allen', '3', '1');
-
-INSERT INTO employees (first_name, last_name, role_id)
-    VALUES 
-        ('Bob', 'Saget', '5'),
-        ('Elvis', 'Prestley', '8');
+        ('Caleb', 'Saiia', '4', '1', true),
+        ('John', 'Doe', '2', null, false),
+        ('Tom', 'Allen', '3', null, false);

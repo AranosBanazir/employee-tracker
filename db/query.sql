@@ -1,3 +1,10 @@
-INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES 
-('Cal', 'Banazir', (SELECT departments.id from departments WHERE departments.name = 'Marketing'), '1');
+    SELECT 
+    e.id, 
+    CONCAT(e.first_name, ' ', e.last_name) AS "Name", 
+    r.title AS "Title", 
+    d.name AS "Department"
+    FROM employees AS e 
+    JOIN roles AS r ON e.role_id = r.id
+    JOIN departments AS d ON r.department = d.id
+    WHERE d.name = 'Legal'
+    ORDER BY "Name" ASC;
