@@ -14,21 +14,26 @@ const getDepartments = async () => {
 const getRoles = async () => {
   const result = await pool.query("SELECT r.title FROM roles AS r;");
 
-  rolesList = result.rows.map((role) => role.title);
+  (rolesList = result.rows.map((role) => role.title)), "None";
 };
 const getEmployees = async () => {
   const result = await pool.query(
-    "SELECT e.first_name, e.last_name FROM employees AS e;"
+    "SELECT e.first_name, e.last_name, e.id FROM employees AS e;"
   );
 
-  employeeList = result.rows.map((emp) => emp.first_name + " " + emp.last_name);
+  employeeList = result.rows.map(
+    (emp) => emp.first_name + " " + emp.last_name + " #" + emp.id
+  );
 };
 const getManagers = async () => {
   const result = await pool.query(
     "SELECT * FROM employees e WHERE e.manager = true;"
   );
 
-  managerList = result.rows.map((emp) => emp.first_name + " " + emp.last_name);
+  managerList = [
+    ...result.rows.map((emp) => emp.first_name + " " + emp.last_name),
+    "None",
+  ];
 };
 
 const manageEmployees = async () => {
@@ -38,8 +43,11 @@ const manageEmployees = async () => {
     prefix: "",
     type: "list",
     choices: [
-      "View all employees",
       "Add an employee",
+      "View all employees",
+      "View employees by manager",
+      "Update an employees role",
+      "Update an employees manager",
       "Delete an employee",
       "Return to main menu",
     ],
@@ -48,7 +56,6 @@ const manageEmployees = async () => {
 };
 
 const addEmployee = async () => {
-  await getEmployees();
   await getRoles();
   await getManagers();
 
@@ -121,14 +128,50 @@ const viewEmployees = async () => {
       d.name AS "Department", CONCAT(m.first_name, ' ', m.last_name) AS "Manager" FROM employees AS e
       LEFT JOIN employees AS m ON e.manager_id = m.id
       JOIN roles AS r ON e.role_id = r.id
-      JOIN departments AS d ON r.id = d.id;`);
+      JOIN departments AS d ON r.id = d.id
+      ORDER BY "Department" ASC;`);
   console.clear();
   console.log(employeeASCII);
   console.table(result.rows);
   return "Manage Employees";
 };
 
-const updateEmployeeRole = async () => {};
+const updateEmployeeRole = async () => {
+  await getEmployees();
+  await getRoles();
+  const answers = await inquirer.prompt([
+    {
+      name: "who",
+      type: "list",
+      prefix: "",
+      choices: employeeList,
+      message: "Which employee needs updated?",
+    },
+    {
+      name: "role",
+      type: "list",
+      prefix: "",
+      choices: rolesList,
+      message: "What role should the employee have?",
+    },
+  ]);
+  await pool.query(
+    `
+    UPDATE employees
+    SET role_id = (SELECT id FROM roles WHERE roles.title = $2)
+    WHERE CONCAT(first_name, ' ', last_name, ' #', id) = $1;
+    `,
+    [answers.who, answers.role]
+  );
+  console.log(
+    `${answers.who}`.brightGreen +
+      ` has been ` +
+      `given the ` +
+      `${answers.role}`.brightGreen +
+      ` role.`
+  );
+  return "Manage Employees";
+};
 
 const deleteEmployee = async () => {
   await getEmployees();
@@ -143,7 +186,7 @@ const deleteEmployee = async () => {
   ]);
   await pool.query(
     `
-    DELETE FROM employees e WHERE CONCAT(e.first_name, ' ', e.last_name) = $1;
+    DELETE FROM employees e WHERE CONCAT(e.first_name, ' ', e.last_name, ' #', e.id) = $1;
     `,
     [answers.who]
   );
@@ -151,8 +194,73 @@ const deleteEmployee = async () => {
   return "Manage Employees";
 };
 
-const viewEmployeesByManager = async () => {};
-const updateEmployeeManagers = async () => {};
+const viewEmployeesByManager = async () => {
+  await getManagers();
+  const answers = await inquirer.prompt([
+    {
+      name: "manager",
+      type: "list",
+      prefix: "",
+      message: "Which manager would you like view?",
+      choices: managerList,
+    },
+  ]);
+
+  const result = await pool.query(
+    `
+    SELECT 
+    e.id, 
+    CONCAT(e.first_name, ' ', e.last_name) AS "Name", 
+    r.title AS "Title", 
+    d.name AS "Department"
+    FROM employees AS e 
+    JOIN roles AS r ON e.role_id = r.id
+    JOIN departments AS d ON r.id = d.id
+    WHERE e.manager_id = (SELECT id FROM employees WHERE CONCAT(first_name, ' ', last_name) = $1)
+    ORDER BY "Name" ASC;`,
+    [answers.manager]
+  );
+  console.clear();
+  console.log(employeeASCII);
+  console.table(result.rows);
+  return "Manage Employees";
+};
+
+const updateEmployeeManager = async () => {
+  await getEmployees();
+  await getManagers();
+  const answers = await inquirer.prompt([
+    {
+      name: "who",
+      type: "list",
+      prefix: "",
+      choices: employeeList,
+      message: "Which employee needs updated?",
+    },
+    {
+      name: "manager",
+      type: "list",
+      prefix: "",
+      choices: managerList,
+      message: "What manager should they be under?",
+    },
+  ]);
+  await pool.query(
+    `
+    UPDATE employees
+    SET manager_id = (SELECT id FROM employees e WHERE 
+    CONCAT(first_name, ' ', last_name) = $2)
+    WHERE CONCAT(first_name, ' ', last_name, ' #', id) = $1;
+    `,
+    [answers.who, answers.manager]
+  );
+  console.log(
+    `${answers.who}`.brightGreen +
+      ` has been assigned to ` +
+      `${answers.manager}`.brightGreen
+  );
+  return "Manage Employees";
+};
 const viewEmployeesByDepartment = async () => {};
 
 module.exports = {
@@ -163,5 +271,5 @@ module.exports = {
   deleteEmployee,
   viewEmployeesByManager,
   viewEmployeesByDepartment,
-  updateEmployeeManagers,
+  updateEmployeeManager,
 };

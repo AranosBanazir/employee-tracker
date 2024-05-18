@@ -52,6 +52,13 @@ async function handleChoice(a) {
     handleChoice(await roles.deleteRole());
   } else if (a === "Delete an employee") {
     handleChoice(await emp.deleteEmployee());
+  } else if (a === "Update an employees role"){
+    handleChoice(await emp.updateEmployeeRole())
+  } else if (a === "Update an employees manager"){
+    handleChoice(await emp.updateEmployeeManager())
+  } else if (a === "View employees by manager"){
+    handleChoice(await emp.viewEmployeesByManager())
+  
   } else if (a === "Return to main menu") {
     console.clear();
     promptMenu();
