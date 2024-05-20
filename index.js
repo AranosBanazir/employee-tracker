@@ -13,7 +13,7 @@ async function promptMenu() {
     name: "action",
     prefix: "",
     type: "list",
-    choices: ["Manage Departments", "Manage Employees", "Manage Roles"],
+    choices: ["Manage Departments", "Manage Employees", "Manage Roles", "Quit"],
   });
 
   handleChoice(answer.action);
@@ -58,12 +58,10 @@ async function handleChoice(a) {
   } else if (a === "Return to main menu") {
     console.clear();
     promptMenu();
+  } else if (a === "Quit") {
+    console.log("Bye bye!".brightGreen);
+    process.exit(0);
   }
 }
-
-
-
-
-
 
 promptMenu();

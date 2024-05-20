@@ -113,7 +113,8 @@ const addEmployee = async () => {
     ]
   );
   console.clear();
-  console.log(
+  console.log(employeeASCII);
+    console.log(
     `${answers.first_name} ${answers.last_name}`.brightGreen +
       ` has been ` +
       "created".brightGreen +
@@ -168,6 +169,9 @@ const updateEmployeeRole = async () => {
     `,
     [answers.who, answers.role]
   );
+
+  console.clear();
+  console.log(employeeASCII);
   console.log(
     `${answers.who}`.brightGreen +
       ` has been ` +
@@ -195,6 +199,8 @@ const deleteEmployee = async () => {
     `,
     [answers.who]
   );
+  console.clear();
+  console.log(employeeASCII);
   console.log(`${answers.who}`.brightRed + ` has been ` + `deleted`.brightRed);
   return "Manage Employees";
 };
@@ -264,6 +270,8 @@ const updateEmployeeManager = async () => {
       ` has been assigned to ` +
       `${answers.manager}`.brightGreen
   );
+  console.clear();
+  console.log(employeeASCII);
   return "Manage Employees";
 };
 

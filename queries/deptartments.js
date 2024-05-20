@@ -1,5 +1,4 @@
 const pool = require("../db/db.js");
-
 const inquirer = require("inquirer");
 let departmentList;
 let rolesList;
@@ -10,11 +9,6 @@ const getDepartments = async () => {
   departmentList = result.rows.map((dept) => dept.name);
 };
 
-const getRoles = async () => {
-  const result = await pool.query("SELECT r.title FROM roles AS r;");
-
-  rolesList = result.rows.map((role) => role.title);
-};
 
 const addDepartment = async () => {
   const answer = await inquirer.prompt({
