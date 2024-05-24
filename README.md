@@ -15,9 +15,9 @@
   to install dependancies run "npm i"
 
 ## Usage 
-  
-  Simply run "node index.js" in your commandline and it will present you with a menu to mangage departments, roles, and employees. Each of the relevant submenus are found in each of the respective menu options.
 
+  Simply run "node index.js" in your commandline and it will present you with a menu to mangage departments, roles, and employees. Each of the relevant submenus are found in each of the respective menu options.
+  You can view the video walkthrough [here](https://drive.google.com/file/d/122F0A6hm0Rl9Ckir-IjHhdYDVUnZEMR4/view?usp=drive_link).
 ## Contact
 You can contact me through any of the below methods:
 
